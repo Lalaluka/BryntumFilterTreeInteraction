@@ -2,13 +2,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import { BryntumSchedulerPro } from '@bryntum/schedulerpro-react';
 import '@bryntum/schedulerpro/schedulerpro.css';
 import '@bryntum/schedulerpro/stockholm-light.css';
-import { setFilterText, allResources, allEvents } from './store/schedulerSlice';
-import { useRef, useEffect } from 'react';
+import { setFilterText } from './store/schedulerSlice';
+import { useRef } from 'react';
 import './App.css';
 
 function App() {
     const dispatch = useDispatch();
-    const filterText = useSelector((s) => s.scheduler.filterText);
+    const { resources, events, filterText } = useSelector((s) => s.scheduler);
     const schedulerRef = useRef();
 
     const schedulerConfig = {
@@ -20,28 +20,12 @@ function App() {
         ],
     };
 
-    useEffect(() => {
-        const scheduler = schedulerRef.current?.instance;
-        if (!scheduler) return;
-
-        if (filterText.trim() === '') {
-            scheduler.resourceStore.clearFilters();
-        } else {
-            const term = filterText.toLowerCase();
-            scheduler.resourceStore.filter({
-                id: 'nameFilter',
-                filterBy: (resource) => resource.name.toLowerCase().includes(term),
-            });
-        }
-    }, [filterText]);
-
     return (
         <div id="app">
             <header>
                 <h2>Bryntum Scheduler Pro — Redux Tree Filter Demo</h2>
                 <p className="hint">
-                    Type a name below to filter resources. Redux owns the filter
-                    criteria; Bryntum's resourceStore.filter() handles visibility.
+                    Type a name below to filter resources via Redux state.
                 </p>
                 <div className="filter-bar">
                     <label htmlFor="filter-input">Filter resources:</label>
@@ -52,14 +36,21 @@ function App() {
                         value={filterText}
                         onChange={(e) => dispatch(setFilterText(e.target.value))}
                     />
+                    {filterText && (
+                        <span className="match-count">
+                            {resources.length === 0
+                                ? 'No matches'
+                                : `${resources.length} resource(s) shown`}
+                        </span>
+                    )}
                 </div>
             </header>
 
             <BryntumSchedulerPro
                 ref={schedulerRef}
                 {...schedulerConfig}
-                resources={allResources}
-                events={allEvents}
+                resources={resources}
+                events={events}
                 groupFeature={false}
                 treeFeature={{ tree: true, expandOnCellClick: false }}
                 treeGroupFeature={{ levels: ['team'], expandParents: false }}

@@ -22,16 +22,23 @@ const allEvents = [
     { id: 'e8', resourceId: 'r8', name: 'Performance tests', startDate: '2026-03-25', endDate: '2026-03-28' },
 ];
 
-export { allResources, allEvents };
+function filterResources(resources, term) {
+    const lower = term.toLowerCase();
+    return resources.filter((r) => r.name.toLowerCase().includes(lower));
+}
 
 const schedulerSlice = createSlice({
     name: 'scheduler',
     initialState: {
+        resources: allResources,
+        events: allEvents,
         filterText: '',
     },
     reducers: {
         setFilterText(state, action) {
-            state.filterText = action.payload;
+            const text = action.payload;
+            state.filterText = text;
+            state.resources = text.trim() === '' ? allResources : filterResources(allResources, text);
         },
     },
 });
